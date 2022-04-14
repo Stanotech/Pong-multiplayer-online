@@ -37,6 +37,7 @@ screen = Screen()
 answer = screen.textinput("Welcome to Ping Pong!", "Do you want to be a server of client?")
 PORT = 65432  # Port to listen on (non-privileged ports are > 1023)
 
+
 if answer == "server":
     HOST = get('https://api.ipify.org').content.decode('utf8')  # getting my public IP address, and decode to UTF
     messagebox.showinfo("yours ip address", HOST)
