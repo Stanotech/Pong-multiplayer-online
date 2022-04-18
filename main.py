@@ -2,11 +2,49 @@ from paddle import Paddle
 from ball import Ball
 from turtle import *
 import turtle as tur
-# from urllib.parse import urlencode
-from requests import get
-from tkinter import messagebox
-import socket
+from pubnub.callbacks import SubscribeCallback
+from pubnub.enums import PNStatusCategory
+from pubnub.pnconfiguration import PNConfiguration
+from pubnub.pubnub import PubNub
 import time
+import os
+
+
+pnconfig = PNConfiguration()
+
+pnconfig.publish_key = 'enter your pubnub publish key here'
+pnconfig.subscribe_key = 'enter your pubnub subscribe key here'
+pnconfig.ssl = True
+
+pubnub = PubNub(pnconfig)
+
+
+def my_publish_callback(envelope, status):
+    # Check whether request successfully completed or not
+    if not status.is_error():
+        pass
+
+
+class MySubscribeCallback(SubscribeCallback):
+    def presence(self, pubnub, presence):
+        pass
+
+    def status(self, pubnub, status):
+        pass
+
+    def message(self, pubnub, message):
+        print("from device 2: " + message.message)
+
+
+pubnub.add_listener(MySubscribeCallback())
+pubnub.subscribe().channels("chan-1").execute()
+
+# publish a message
+while True:
+    msg = input("Input a message to publish: ")
+    if msg == 'exit':
+        os._exit(1)
+    pubnub.publish().channel("chan-1").message(str(msg)).pn_async(my_publish_callback)
 
 
 def right_paddle_ball_touch():
@@ -34,38 +72,6 @@ def position(eve):
 
 
 screen = Screen()
-answer = screen.textinput("Welcome to Ping Pong!", "Do you want to be a server of client?")
-PORT = 65432  # Port to listen on (non-privileged ports are > 1023)
-
-
-if answer == "server":
-    HOST = get('https://api.ipify.org').content.decode('utf8')  # getting my public IP address, and decode to UTF
-    messagebox.showinfo("yours ip address", HOST)
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.bind((HOST, PORT))  # binding ip and port to socket connection
-        s.listen()  # listening for connection
-        conn, addr = s.accept()  # return connection and address connected
-        with conn:
-            print(f"Connected by {addr}")
-            while True:
-                data = conn.recv(1024)
-                # if not data:
-                #     break
-                str1 = data.decode('UTF-8')  # converting from bytes to string
-                print(str1)
-                conn.sendall(data + b" oddaje")
-
-elif answer == "client":
-    HOST = screen.textinput("Host address", "Please type in the host ip address")
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.connect((HOST, PORT))
-        while True:
-            s.sendall(b"Hello, world")
-            data = s.recv(1024)
-            time.sleep(1)
-            print(f"Received {data!r}")
-
-
 screen.setup(width=800, height=800)
 screen.bgcolor("black")
 screen.title("PONG")
