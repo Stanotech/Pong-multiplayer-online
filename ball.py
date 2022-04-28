@@ -9,8 +9,8 @@ class Ball(Turtle):
         self.color("white")
         self.shapesize(1)
         self.penup()
-        self.x_speed = random.uniform(0, 0.5)
-        self.y_speed = random.uniform(0, 0.5)
+        self.x_speed = 0.6
+        self.y_speed = 0.6
 
     def move(self):
         self.setx(self.xcor() + self.x_speed)

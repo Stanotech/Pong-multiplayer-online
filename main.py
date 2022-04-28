@@ -1,50 +1,53 @@
+from score import *
 from paddle import Paddle
 from ball import Ball
 from turtle import *
 import turtle as tur
+import tkinter as tk
+from tkinter import simpledialog
+import time
 from pubnub.callbacks import SubscribeCallback
-from pubnub.enums import PNStatusCategory
+from pubnub.enums import PNStatusCategory  # , PNOperationType
 from pubnub.pnconfiguration import PNConfiguration
 from pubnub.pubnub import PubNub
-import time
-import os
 
 
-pnconfig = PNConfiguration()
-
-pnconfig.publish_key = 'enter your pubnub publish key here'
-pnconfig.subscribe_key = 'enter your pubnub subscribe key here'
-pnconfig.ssl = True
-
-pubnub = PubNub(pnconfig)
-
-
-def my_publish_callback(envelope, status):
-    # Check whether request successfully completed or not
+def my_publish_callback(envelope, status):  # Check whether request successfully completed or not
     if not status.is_error():
-        pass
+        pass  # Message successfully published to specified channel.
+    else:
+        pass  # Handle message publish error. Check 'category' property to find out possible issue
+        # because of which request did fail.
+        # Request can be resent using: [status retry];
 
 
 class MySubscribeCallback(SubscribeCallback):
     def presence(self, pubnub, presence):
-        pass
+        pass  # handle incoming presence data
 
     def status(self, pubnub, status):
-        pass
+        if status.category == PNStatusCategory.PNUnexpectedDisconnectCategory:
+            pass  # This event happens when radio / connectivity is lost
 
-    def message(self, pubnub, message):
-        print("from device 2: " + message.message)
+        elif status.category == PNStatusCategory.PNConnectedCategory:
+            # Connect event. You can do stuff like publish, and know you'll get it.
+            # Or just use the connected event to confirm you are subscribed for
+            # UI / internal notifications, etc
+            pubnub.publish().channel('channel1').message('logged').pn_async(my_publish_callback)
+        elif status.category == PNStatusCategory.PNReconnectedCategory:
+            pass
+            # Happens as part of our regular operation. This event happens when
+            # radio / connectivity is lost, then regained.
+        elif status.category == PNStatusCategory.PNDecryptionErrorCategory:
+            pass
+            # Handle message decryption error. Probably client configured to
+            # encrypt messages and on live data feed it received plain text.
 
-
-pubnub.add_listener(MySubscribeCallback())
-pubnub.subscribe().channels("chan-1").execute()
-
-# publish a message
-while True:
-    msg = input("Input a message to publish: ")
-    if msg == 'exit':
-        os._exit(1)
-    pubnub.publish().channel("chan-1").message(str(msg)).pn_async(my_publish_callback)
+    def message(self, pubnub, message):  # listener for massage
+        # Handle new message stored in message.message
+        print(message.message)
+        global message_in
+        message_in = message.message
 
 
 def right_paddle_ball_touch():
@@ -61,21 +64,38 @@ def left_paddle_ball_touch():
         return 1
 
 
-def position(eve):
-    a = eve.y
-    if -250 <= l_paddle.ycor() <= 250:
-        l_paddle.sety(-a+400)
-    if l_paddle.ycor() <= -250:
-        l_paddle.sety(-249)
-    if l_paddle.ycor() >= 250:
-        l_paddle.sety(249)
+def goal_check():
+    if ball.xcor() < -350:
+        ball.setpos(0, 0)
+        score_board.r_point()
+    elif ball.xcor() > 350:
+        ball.setpos(0, 0)
+        score_board.l_point()
 
+
+def position(y_pos, paddle):  # paddle y pos bind to y mouse position
+    if -250 <= paddle.ycor() <= 250:
+        paddle.sety(-y_pos + 460)
+    if paddle.ycor() <= -250:
+        paddle.sety(-249)
+    if paddle.ycor() >= 250:
+        paddle.sety(249)
+
+
+message_out = {}
+message_in = {}
+ROOT = tk.Tk()  # the input dialog
+ROOT.withdraw()
+username = simpledialog.askstring(title="Test", prompt="What's your Username:")
+friend_username = simpledialog.askstring(title="Test", prompt="What's your friend username:")
 
 screen = Screen()
 screen.setup(width=800, height=800)
 screen.bgcolor("black")
 screen.title("PONG")
 screen.tracer(0)
+screen.listen()
+score_board = Scoreboard()
 
 band_up = Paddle((0, 320))
 band_up.shapesize(1, 50)
@@ -85,25 +105,50 @@ r_paddle = Paddle((350, 0))
 l_paddle = Paddle((-350, 0))
 ball = Ball()
 
+pnconfig = PNConfiguration()
+pnconfig.subscribe_key = 'sub-c-928a66b6-bf3b-11ec-8ed3-2a42de1e11b7'
+pnconfig.publish_key = 'pub-c-362cb6b6-9153-4ad8-a203-28ec0e7d254b'
+pnconfig.uuid = username
+pubnub = PubNub(pnconfig)
 
-screen.listen()
+pubnub.add_listener(MySubscribeCallback())  # listener starts
+pubnub.subscribe().channels('channel1').execute()  # logging in
+message_out[username] = 500  # creating first message
+time.sleep(2)
+
+player_paddle = l_paddle
+opponent_paddle = r_paddle  # DO WYJEBANIA
+
+# if friend_username in message_in:
+#     player_paddle = l_paddle
+#     opponent_paddle = r_paddle
+#
+# else:
+#     player_paddle = r_paddle
+#     opponent_paddle = l_paddle
+#     while True:
+#         if friend_username in message_in:
+#             break
+#         print("waiting")
+#         pubnub.publish().channel("channel1").message(message_out).pn_async(my_publish_callback)
+#         time.sleep(1)
+
 
 game_on = True
-
 while game_on:
     screen.update()
-    screen.onkeypress(l_paddle.up, "w")
-    screen.onkeypress(l_paddle.down, "s")
-    screen.onkeypress(r_paddle.up, "i")
-    screen.onkeypress(r_paddle.down, "k")
-    screen.update()
     ball.move()
-
     ball.x_speed *= left_paddle_ball_touch()
     ball.x_speed *= right_paddle_ball_touch()
 
-    ws = tur.getcanvas()
-    ws.bind('<Motion>', position)
-
+    canvas = tur.getcanvas()  # getting mouse y position
+    y = canvas.winfo_pointery()
+    message_out[username] = y  # creating message_out position variable for sending
+    # time.sleep(1)
+    # pubnub.publish().channel("channel1").message(message_out).pn_async(my_publish_callback)
+    position(y, player_paddle)  # update player paddle position
+    if friend_username in message_in:
+        position(int(message_in[friend_username]), opponent_paddle)  # update opponent paddle position
+    goal_check()
 
 screen.exitonclick()
