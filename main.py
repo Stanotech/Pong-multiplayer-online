@@ -85,6 +85,7 @@ r_paddle = Paddle((350, 0))
 l_paddle = Paddle((-350, 0))
 ball = Ball()
 
+
 screen.listen()
 
 game_on = True
