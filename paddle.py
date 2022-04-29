@@ -10,11 +10,3 @@ class Paddle(Turtle):
         self.shapesize(5, 1)
         self.penup()
         self.goto(position)
-        
-    def up(self):
-        new_y = self.ycor() + 30
-        self.sety(new_y)
-
-    def down(self):
-        new_y = self.ycor() - 30
-        self.sety(new_y)

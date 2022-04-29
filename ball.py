@@ -1,4 +1,3 @@
-import random
 from turtle import Turtle
 
 
@@ -9,8 +8,8 @@ class Ball(Turtle):
         self.color("white")
         self.shapesize(1)
         self.penup()
-        self.x_speed = 0.6
-        self.y_speed = 0.6
+        self.x_speed = 1
+        self.y_speed = 1
 
     def move(self):
         self.setx(self.xcor() + self.x_speed)
@@ -19,3 +18,7 @@ class Ball(Turtle):
             self.y_speed *= -1
         if self.ycor() <= -300:
             self.y_speed *= -1
+
+    def gain_speed(self):
+        self.y_speed *= 1.05
+        self.x_speed *= 1.05
