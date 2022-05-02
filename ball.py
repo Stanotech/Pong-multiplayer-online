@@ -8,8 +8,8 @@ class Ball(Turtle):
         self.color("white")
         self.shapesize(1)
         self.penup()
-        self.x_speed = 1
-        self.y_speed = 1
+        self.x_speed = 12
+        self.y_speed = 6
 
     def move(self):
         self.setx(self.xcor() + self.x_speed)
