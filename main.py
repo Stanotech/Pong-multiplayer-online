@@ -9,42 +9,12 @@ import time
 from pubnub.pnconfiguration import PNConfiguration
 from pubnub.pubnub import PubNub
 from PubNubb import *
-
-
-def paddle_bounce_check(paddle_r, paddle_l, baall):
-    if (paddle_r.ycor() + 50 >= baall.ycor() >= paddle_r.ycor() - 50 and baall.xcor() >= paddle_r.xcor() - 20)\
-            or paddle_l.ycor() + 50 >= baall.ycor() >= paddle_l.ycor() - 50 and baall.xcor() <= paddle_l.xcor() + 20:
-
-        baall.gain_speed()
-        baall.x_speed *= -1
-
-
-def goal_check():
-    if ball.xcor() < -380:
-        ball.setpos(0, 0)
-        score_board.r_point()
-        ball.x_speed = 12
-        ball.y_speed = 6
-
-    elif ball.xcor() > 380:
-        ball.setpos(0, 0)
-        score_board.l_point()
-        ball.x_speed = 12
-        ball.y_speed = 6
-
-
-def position(y_pos, paddle):  # paddle y pos bind to y mouse position
-    if -250 <= paddle.ycor() <= 250:
-        paddle.sety(-y_pos + 460)
-    if paddle.ycor() <= -250:
-        paddle.sety(-249)
-    if paddle.ycor() >= 250:
-        paddle.sety(249)
+from mechanics import *
 
 
 message_out = {}
 message_in = {}
-ROOT = tk.Tk()  # the input dialog
+ROOT = tk.Tk()                                          # the input dialog
 ROOT.withdraw()
 username = simpledialog.askstring(title=" ", prompt="What's your username:")
 friend_username = simpledialog.askstring(title=" ", prompt="What's your friend username:")
@@ -57,7 +27,7 @@ screen.tracer(0)
 screen.listen()
 score_board = Scoreboard()              # creating scoreboard object
 
-band_up = Paddle((0, 320))          # creating objects from classes
+band_up = Paddle((0, 320))          # creating objects
 band_up.shapesize(1, 50)
 band_down = Paddle((0, -320))
 band_down.shapesize(1, 50)
@@ -66,7 +36,7 @@ l_paddle = Paddle((-350, 0))
 ball = Ball()
 
 pnconfig = PNConfiguration()
-pnconfig.subscribe_key = 'sub-c-928a66b6-bf3b-11ec-8ed3-2a42de1e11b7'
+pnconfig.subscribe_key = 'sub-c-928a66b6-bf3b-11ec-8ed3-2a42de1e11b7'       # subscription key
 pnconfig.publish_key = 'pub-c-362cb6b6-9153-4ad8-a203-28ec0e7d254b'
 pnconfig.uuid = username
 pubnub = PubNub(pnconfig)
@@ -76,11 +46,11 @@ pubnub.subscribe().channels('channel1').execute()   # logging in
 message_out[username] = 500                         # creating first message
 time.sleep(2)
 
-if friend_username in message_in:
+if friend_username in message_in:           # checking if message contains friends username(friend logged in)
     player_paddle = l_paddle
     opponent_paddle = r_paddle
 
-else:
+else:                                       # if not, user takes right side and waits till friend will log in
     player_paddle = r_paddle
     opponent_paddle = l_paddle
     while True:
@@ -106,6 +76,6 @@ while game_on:
     position(y, player_paddle)      # update player paddle position
     if friend_username in message_in:
         position(int(message_in[friend_username]), opponent_paddle)  # update opponent paddle position
-    goal_check()
+    goal_check(ball, score_board)
 
 screen.exitonclick()
