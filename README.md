@@ -1,4 +1,8 @@
 # Pong-multiplayer-online
+
+![alt text](https://github.com/[username]/[reponame]/blob/[branch]/image.jpg?raw=true)
+
+
 Online game for pairs of friends :)
 
 Game is very simple in use. Just run exe file (sometimes antivirus program considers py exe files as a virus. Ignore that). 
