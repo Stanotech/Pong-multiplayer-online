@@ -76,7 +76,7 @@ while game_on:
     message_out[username] = y       # creating message_out position variable for sending y position of paddle
     time.sleep(0.025)
     pubnub.publish().channel("channel1").message(message_out).pn_async(my_publish_callback)
-    # sending message with y pos
+    # sending message with y pos 
     position(y, player_paddle)      # update player paddle position
     if friend_username in config.message_in:
         position(int(config.message_in[friend_username]), opponent_paddle)  # update opponent paddle position
