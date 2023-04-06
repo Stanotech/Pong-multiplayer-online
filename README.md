@@ -1,6 +1,6 @@
 # Pong-multiplayer-online
 
-![alt text](https://github.com/[username]/[reponame]/blob/[branch]/image.jpg?raw=true)
+![alt text](https://github.com/Stanotech/Pong-multiplayer-online/blob/master/pong.jpg)
 
 
 Online game for pairs of friends :)
